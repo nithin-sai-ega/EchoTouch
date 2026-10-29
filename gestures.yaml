@@ -1,0 +1,50 @@
+# EchoTouch gesture definitions.
+#
+# tier:    core      - push/pull/wave: radial motion, what acoustic Doppler measures best
+#          advanced  - swipes: EXPERIMENTAL. Doppler only sees radial velocity, so left vs
+#                      right (and up vs down) look alike to a single speaker/mic pair.
+#          custom    - your own gestures (add entries below)
+# enabled: set to true/false. Changing the enabled set requires retraining.
+# motion:  false only for 'idle' (the reject class, which is always required).
+#
+# After changing this file, record clips for new gestures (enroll.py) and retrain (train.py).
+
+gestures:
+  - name: idle
+    tier: core
+    enabled: true
+    motion: false
+    instruction: Do NOT gesture. Behave naturally (you will be prompted per sub-type).
+  - name: push
+    tier: core
+    enabled: true
+    instruction: Move your open hand TOWARD the screen, then stop.
+  - name: pull
+    tier: core
+    enabled: true
+    instruction: Move your open hand AWAY from the screen, then stop.
+  - name: wave
+    tier: core
+    enabled: true
+    instruction: Wave your hand side to side 2-3 times in front of the screen.
+  - name: swipe_left
+    tier: advanced
+    enabled: false
+    instruction: Swipe your hand from right to left across the screen.
+  - name: swipe_right
+    tier: advanced
+    enabled: false
+    instruction: Swipe your hand from left to right across the screen.
+  - name: swipe_up
+    tier: advanced
+    enabled: false
+    instruction: Swipe your hand upward in front of the screen.
+  - name: swipe_down
+    tier: advanced
+    enabled: false
+    instruction: Swipe your hand downward in front of the screen.
+  # Example custom gesture (disabled):
+  # - name: double_tap
+  #   tier: custom
+  #   enabled: false
+  #   instruction: Tap the air toward the screen twice.

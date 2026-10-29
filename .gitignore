@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# EchoTouch data: personal recordings and simulated data never go to git
+profiles/
+sim/
+*.log
+
+# Model weights (except a future shipped base model in models/pretrained/)
+*.pth
+*.pt
+*.onnx
+!models/pretrained/
+!models/pretrained/**
+.claude/

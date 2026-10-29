@@ -1,0 +1,46 @@
+# EchoTouch gesture -> action mapping.
+#
+# OS control is OFF by default. Enable it explicitly with:
+#     python inference.py --enable-control            (real key presses)
+#     python inference.py --enable-control --dry-run  (print only)
+# or with the toggle in the dashboard's Live Control Center.
+#
+# Types:
+#   key      {key: <pyautogui key name>}          e.g. playpause, space, right
+#   hotkey   {keys: [ctrl, right]}
+#   scroll   {amount: 5}                          positive = up
+#   volume   {direction: up | down | mute}
+#   command  {command: ["notepad.exe"]}           argument list, never run through a shell
+#   none
+# Key names: https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
+# pyautogui FAILSAFE stays ON: slam the mouse into a screen corner to abort.
+
+actions:
+  idle:
+    type: none
+  push:
+    type: key
+    key: playpause
+    description: play / pause media
+  pull:
+    type: volume
+    direction: mute
+  wave:
+    type: key
+    key: nexttrack
+    description: next track
+  # Experimental (advanced tier) gestures:
+  swipe_left:
+    type: hotkey
+    keys: [alt, left]
+    description: browser back
+  swipe_right:
+    type: hotkey
+    keys: [alt, right]
+    description: browser forward
+  swipe_up:
+    type: scroll
+    amount: 5
+  swipe_down:
+    type: scroll
+    amount: -5

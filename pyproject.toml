@@ -1,0 +1,34 @@
+[project]
+name = "echotouch"
+version = "0.1.0"
+description = "Touchless acoustic gesture control for laptops using Doppler sonar from the built-in speaker and mic."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+markers = [
+    "slow: end-to-end tests (train a small model on simulated data)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:streamlit.*",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = [".venv", "profiles", "sim", "models"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "RUF100"]
+ignore = [
+    "B905",  # zip(strict=) not needed for our fixed-length zips
+    "S101",  # assert is fine in tests
+    "S311",  # numpy/random RNGs are not used for security
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B"]
