@@ -24,6 +24,10 @@ def test_repo_actions_file():
         ("actions:\n  push: {type: hotkey, keys: []}\n", "hotkey"),
         ("actions:\n  push: {type: scroll, amount: 0}\n", "scroll"),
         ("actions:\n  push: {type: volume, direction: sideways}\n", "volume"),
+        # Muting the system would also mute EchoTouch's own carrier tone.
+        ("actions:\n  pull: {type: volume, direction: mute}\n", "volume"),
+        ("actions:\n  pull: {type: key, key: volumemute}\n", "mute EchoTouch"),
+        ("actions:\n  pull: {type: hotkey, keys: [ctrl, VolumeMute]}\n", "mute EchoTouch"),
         ("actions:\n  idle: {type: key, key: a}\n", "idle"),
         ("nothing: here\n", "actions"),
     ],
@@ -83,8 +87,16 @@ def test_real_execution_keeps_failsafe(monkeypatch: pytest.MonkeyPatch):
     ex.execute("swipe_left")
     ex.execute("swipe_down")
     ex.execute("pull")
-    assert gui.calls == [("press", "playpause"), ("hotkey", ("alt", "left")), ("scroll", -5), ("press", "volumemute")]
+    assert gui.calls == [("press", "playpause"), ("hotkey", ("alt", "left")), ("scroll", -5), ("press", "prevtrack")]
     assert gui.FAILSAFE is True
+
+
+def test_default_actions_never_silence_the_carrier():
+    keys = []
+    for a in load_actions().values():
+        keys += [a.params.get("key", "")] + list(a.params.get("keys", []))
+        assert not (a.type == "volume" and a.params["direction"] == "down"), a
+    assert "volumemute" not in keys and "volumedown" not in keys
 
 
 def test_force_dry_run_blocks_real_actions(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]):

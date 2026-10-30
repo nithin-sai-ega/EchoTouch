@@ -93,6 +93,20 @@ Simulated models exist only for tests and demos. Record real data with `enroll.p
 A few xruns are harmless. Many xruns mean the CPU is busy or the buffer is too small. Close heavy
 apps, keep the laptop on AC power, and avoid running training and live control at the same time.
 
+## Works for a few gestures, then only "idle" / "NO CARRIER" warning
+
+EchoTouch can't see gestures when it can't hear its own tone. Common causes:
+
+- **The speaker got muted** (a mute key, or a gesture mapped to mute in an old `actions.yaml`).
+  Unmute it. Mute actions are now refused when `actions.yaml` loads.
+- **The master volume was turned far down.** Put it back near the level you calibrated at. To make
+  a video quieter, lower the player's volume or its slider in the **Volume Mixer** instead.
+- **OS processing kicked in after a while** (noise suppression, audio enhancements). See the
+  Windows section above, then re-run `python doctor.py` to check stability.
+
+The CLI prints `!! NO CARRIER` and the dashboard shows a red **No carrier** banner while the tone
+is missing. Recognition resumes automatically once it's back.
+
 ## Gestures are not recognized / too many false triggers
 
 - Check the **Live Control Center** spectrogram. A push should light up *above* the carrier

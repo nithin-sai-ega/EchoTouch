@@ -313,6 +313,9 @@ class InferenceConfig:
     #: Keep classifying for this long after the gate closes.
     gate_hold_seconds: float = 0.3
     snr_interval_seconds: float = 1.0
+    #: Below this carrier SNR the tone is considered lost (muted speaker, volume too low,
+    #: OS noise suppression); classification pauses instead of guessing from noise.
+    min_carrier_snr_db: float = 15.0
 
 
 # --------------------------------------------------------------------------- #

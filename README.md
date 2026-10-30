@@ -156,7 +156,13 @@ python inference.py --enable-control
 ```
 
 Gesture→action mappings live in [`actions.yaml`](actions.yaml) (key, hotkey, scroll, volume or a
-custom command). pyautogui's FAILSAFE stays on: throw the mouse into a screen corner to abort.
+custom command). By default push = play/pause, pull = previous track, wave = next track.
+pyautogui's FAILSAFE stays on: throw the mouse into a screen corner to abort.
+
+> The tone plays through your speakers, so **keep the Windows master volume where you
+> calibrated it**. To make a video quieter, lower the player's own volume (or its slider in the
+> Windows Volume Mixer). Mute actions are refused, because muting would make EchoTouch deaf. If the tone
+> disappears, live recognition pauses and shows a **"No carrier"** warning instead of guessing.
 
 ### 5. Dashboard: `streamlit run app.py`
 
@@ -227,6 +233,8 @@ movement, someone walking by, and ambient.
   communications-mode ducking and AGC may remove or modulate the carrier. `doctor.py` detects
   this; see [TROUBLESHOOTING](docs/TROUBLESHOOTING.md).
 - **Bluetooth doesn't work.** Its mic profile is band-limited far below 17 kHz.
+- **System volume matters.** The tone shares the speakers with everything else. Muting or
+  turning the master volume far down silences it, and recognition pauses until it returns.
 - **Audibility.** Some people and most pets can hear 17–19 kHz. Use the lowest volume that works
   and the highest carrier the doctor recommends.
 - **Battery/CPU.** Full-duplex audio plus an STFT every 100 ms costs a few percent CPU, and the

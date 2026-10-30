@@ -9,11 +9,16 @@
 #   key      {key: <pyautogui key name>}          e.g. playpause, space, right
 #   hotkey   {keys: [ctrl, right]}
 #   scroll   {amount: 5}                          positive = up
-#   volume   {direction: up | down | mute}
+#   volume   {direction: up | down}
 #   command  {command: ["notepad.exe"]}           argument list, never run through a shell
 #   none
 # Key names: https://pyautogui.readthedocs.io/en/latest/keyboard.html#keyboard-keys
 # pyautogui FAILSAFE stays ON: slam the mouse into a screen corner to abort.
+#
+# IMPORTANT: EchoTouch's tone plays through the system output. Muting the system would
+# silence the tone and make EchoTouch deaf, so mute actions are refused. Lowering the
+# system volume weakens the tone too. To quiet a video, lower the player's own volume
+# (or its slider in the Windows Volume Mixer) instead of the master volume.
 
 actions:
   idle:
@@ -23,8 +28,9 @@ actions:
     key: playpause
     description: play / pause media
   pull:
-    type: volume
-    direction: mute
+    type: key
+    key: prevtrack
+    description: previous track
   wave:
     type: key
     key: nexttrack

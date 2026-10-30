@@ -188,6 +188,7 @@ class LiveState:
     confidence: float = 0.0
     cooldown: bool = False
     snr_db: float | None = None
+    carrier_lost: bool = False
     control_enabled: bool = False
     dry_run: bool = True
     steps: int = 0
@@ -222,6 +223,7 @@ class InferenceWorker:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self._last_snr = float("-inf")
+        self._carrier_lost = False
         self._on_trigger = on_trigger
 
     def start(self) -> None:
@@ -261,8 +263,6 @@ class InferenceWorker:
         dsp = self.recognizer.dsp
         t0 = time.perf_counter()
         audio = self.engine.get_latest(dsp.window_seconds)
-        res = self.recognizer.step(audio, now)
-        dt_ms = (time.perf_counter() - t0) * 1000
         snr = None
         if now - self._last_snr >= self.cfg.snr_interval_seconds and len(audio) >= 8192:
             self._last_snr = now
@@ -270,6 +270,25 @@ class InferenceWorker:
                 snr = snr_at_frequency(audio, dsp.sample_rate, dsp.carrier_hz)
             except ValueError:
                 snr = None
+            if snr is not None:
+                lost = snr < self.cfg.min_carrier_snr_db
+                if lost != self._carrier_lost:
+                    if lost:
+                        logger.warning(
+                            "Carrier tone lost (SNR %.0f dB): is the speaker muted or the volume too low? "
+                            "Recognition is paused until it returns.",
+                            snr,
+                        )
+                    else:
+                        logger.info("Carrier tone is back (SNR %.0f dB); recognition resumed.", snr)
+                self._carrier_lost = lost
+        if self._carrier_lost:
+            # Without the carrier there is no echo to classify; the window is only noise.
+            self.recognizer.smoother.reset()
+            res = StepResult(0.0, False)
+        else:
+            res = self.recognizer.step(audio, now)
+        dt_ms = (time.perf_counter() - t0) * 1000
         event = None
         if res.triggered:
             try:
@@ -291,6 +310,7 @@ class InferenceWorker:
                 st.label, st.confidence = None, 0.0
             if snr is not None:
                 st.snr_db = snr
+            st.carrier_lost = self._carrier_lost
             st.steps += 1
             st.avg_step_ms = 0.9 * st.avg_step_ms + 0.1 * dt_ms if st.steps > 1 else dt_ms
             if event is not None:
@@ -396,6 +416,12 @@ def main(argv: list[str] | None = None) -> int:
                     last_status = time.monotonic()
                     snr = f"{st.snr_db:.0f} dB" if st.snr_db is not None else "?"
                     print(f"  [status] carrier SNR {snr} | motion {st.motion_db:.1f} dB | step {st.avg_step_ms:.1f} ms")
+                    if st.carrier_lost:
+                        print(
+                            "  !! NO CARRIER: EchoTouch can't hear its own tone, so it can't see gestures.\n"
+                            "     Check the speaker isn't muted and the system volume is where you calibrated it.\n"
+                            "     (Lower a video's volume in the player, not the Windows master volume.)"
+                        )
     except KeyboardInterrupt:
         print("\nStopped.")
     except EngineError as exc:

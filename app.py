@@ -621,6 +621,12 @@ def tab_live(rt: AppRuntime, ctx: dict[str, Any]) -> None:
                 if g != "idle" and col.button(f"🎭 perform {g}", key=f"perf_{g}", width="stretch"):
                     eng.perform(g)  # type: ignore[union-attr]
         s = sess.worker.snapshot()
+        if s.carrier_lost:
+            st.error(
+                "**No carrier:** EchoTouch can't hear its own tone, so recognition is paused. Check the "
+                "speaker isn't muted and the system volume is where you calibrated it. To quiet a video, "
+                "lower the player's volume instead of the Windows master volume."
+            )
         audio = eng.get_latest(4.0)
         top, side = st.columns([0.68, 0.32], gap="medium")
         with top:

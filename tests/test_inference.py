@@ -123,3 +123,36 @@ def test_worker_thread_runs(dsp_cfg: DSPConfig):
         worker.stop()
     snap = worker.snapshot()
     assert snap.steps > 3 and snap.error is None and not worker.running
+
+
+def test_carrier_loss_pauses_recognition_and_recovers():
+    """A muted speaker must be reported as 'no carrier', not silently classified as idle."""
+    dsp = DSPConfig()
+    rec = _recognizer(1, InferenceConfig(smoothing=2, cooldown_seconds=0.5))
+    worker = InferenceWorker(SimulatedAudioEngine(dsp, realtime=False, seed=4), rec, ActionExecutor({}))
+    eng = worker.engine
+
+    def run(seconds: float) -> list[str]:
+        fired = []
+        for _ in range(int(seconds * 10)):
+            eng.advance(0.1)
+            if worker.process_once(now=eng.now).triggered:
+                fired.append("push")
+        return fired
+
+    with eng:
+        eng.advance(1.2)
+        run(1.0)
+        assert not worker.snapshot().carrier_lost
+        eng.set_tone_enabled(False)  # e.g. a "mute" key press or volume at 0
+        run(2.5)
+        assert worker.snapshot().carrier_lost
+        calls_before = rec.model.calls
+        eng.perform("push", delay=0.1)
+        assert run(2.0) == []  # no guessing from noise
+        assert rec.model.calls == calls_before
+        eng.set_tone_enabled(True)
+        run(2.5)
+        assert not worker.snapshot().carrier_lost
+        eng.perform("push", delay=0.1)
+        assert "push" in run(2.0)  # recognition resumes once the tone is back

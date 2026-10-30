@@ -5,12 +5,14 @@ Supported action types::
     key      {key: playpause}                 press one key
     hotkey   {keys: [alt, left]}              press a key combination
     scroll   {amount: 5}                      scroll (positive = up)
-    volume   {direction: up|down|mute}        media volume keys
+    volume   {direction: up|down}             media volume keys
     command  {command: ["notepad.exe"]}       run a program (argument list, no shell)
     none     {}                               do nothing
 
 Safety: OS control is OFF unless explicitly enabled; ``dry_run`` only prints;
 pyautogui's FAILSAFE (slam the mouse into a screen corner to abort) stays ON.
+Actions that mute the system are refused: the carrier tone plays through the same
+output, so muting would make EchoTouch deaf until the user unmutes by hand.
 """
 
 from __future__ import annotations
@@ -33,7 +35,9 @@ from config import DEFAULT_ACTIONS_FILE
 logger = logging.getLogger(__name__)
 
 ACTION_TYPES = ("key", "hotkey", "scroll", "volume", "command", "none")
-_VOLUME_KEYS = {"up": "volumeup", "down": "volumedown", "mute": "volumemute"}
+_VOLUME_KEYS = {"up": "volumeup", "down": "volumedown"}
+#: Keys that silence the system output, and with it EchoTouch's own carrier tone.
+_CARRIER_KILLING_KEYS = {"volumemute"}
 
 
 class ActionConfigError(ValueError):
@@ -68,6 +72,21 @@ class Action:
         return "no action"
 
 
+def _check_carrier_safe(gesture: str, keys: list[str]) -> None:
+    """Refuse mute keys (they would silence the carrier); warn on volume-down."""
+    if _CARRIER_KILLING_KEYS & set(keys):
+        raise ActionConfigError(
+            f"actions.{gesture}: muting the system would also mute EchoTouch's own tone, so it "
+            "could not hear any further gestures. Map this gesture to something else."
+        )
+    if "volumedown" in keys:
+        logger.warning(
+            "actions.%s lowers the system volume, which also weakens EchoTouch's tone; "
+            "recognition may stop at low volumes.",
+            gesture,
+        )
+
+
 def _parse_action(gesture: str, raw: Any) -> Action:
     if raw is None:
         return Action(gesture, "none")
@@ -80,11 +99,13 @@ def _parse_action(gesture: str, raw: Any) -> Action:
     if typ == "key":
         if not isinstance(raw.get("key"), str):
             raise ActionConfigError(f"actions.{gesture}: 'key' action needs key: <name>")
+        _check_carrier_safe(gesture, [raw["key"].lower()])
         return Action(gesture, typ, {"key": raw["key"].lower()}, desc)
     if typ == "hotkey":
         keys = raw.get("keys")
         if not isinstance(keys, list) or not keys or not all(isinstance(k, str) for k in keys):
             raise ActionConfigError(f"actions.{gesture}: 'hotkey' action needs keys: [k1, k2, ...]")
+        _check_carrier_safe(gesture, [k.lower() for k in keys])
         return Action(gesture, typ, {"keys": [k.lower() for k in keys]}, desc)
     if typ == "scroll":
         amount = raw.get("amount")
@@ -94,7 +115,8 @@ def _parse_action(gesture: str, raw: Any) -> Action:
     if typ == "volume":
         direction = raw.get("direction")
         if direction not in _VOLUME_KEYS:
-            raise ActionConfigError(f"actions.{gesture}: volume direction must be up|down|mute")
+            raise ActionConfigError(f"actions.{gesture}: volume direction must be up|down")
+        _check_carrier_safe(gesture, [_VOLUME_KEYS[direction]])
         return Action(gesture, typ, {"direction": direction}, desc)
     if typ == "command":
         cmd = raw.get("command")
