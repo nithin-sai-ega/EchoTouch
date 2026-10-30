@@ -1,6 +1,6 @@
 # EchoTouch
 
-[![CI](https://github.com/ega-nithin-sai/EchoTouch/actions/workflows/ci.yml/badge.svg)](https://github.com/ega-nithin-sai/EchoTouch/actions/workflows/ci.yml)
+[![CI](https://github.com/nithin-sai-ega/EchoTouch/actions/workflows/ci.yml/badge.svg)](https://github.com/nithin-sai-ega/EchoTouch/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -69,7 +69,7 @@ Requires Python 3.10+ and a laptop with a built-in speaker and microphone. Windo
 target; macOS and Linux should work but are less tested.
 
 ```bash
-git clone https://github.com/ega-nithin-sai/EchoTouch.git
+git clone https://github.com/nithin-sai-ega/EchoTouch.git
 ```
 
 ```bash
